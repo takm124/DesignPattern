@@ -5,3 +5,4 @@
 - [데코레이터 패턴, Decorator Pattern](https://github.com/takm124/DesignPattern/blob/main/src/Decorator/Decorator.md)
 - [싱글톤 패턴, Singleton Pattern](https://github.com/takm124/DesignPattern/blob/main/src/Singleton/Singleton.md)
 - [팩토리 메소드 패턴, Factory method pattern](https://github.com/takm124/DesignPattern/blob/main/src/Factory/Factory%20Pattern.md)
+- [커맨드 패턴, Command Pattern](https://github.com/takm124/DesignPattern/blob/main/src/Command/Command%20Pattern.md)
