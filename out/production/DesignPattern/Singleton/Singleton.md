@@ -85,8 +85,118 @@ public class LazyInitializedSingleton {
 
 ### Thread Safe Singleton
 
+- 가장 쉽게 thread-safe한 싱글톤을 만드는 방법이다.
+- synchronized 키워드를 사용하면 자바에서 동시성 보장을 해줌
 
 
 
+```java
+public class ThreadSafeSingleton {
+    private static ThreadSafeSingleton instance;
+
+    private ThreadSafeSingleton(){}
+
+    public static synchronized ThreadSafeSingleton getInstance() {
+        if (instance == null) {
+            instance = new ThreadSafeSingleton();
+        }
+
+        return instance;
+    }
+}
+```
+
+- 간단하게 동시성을 보장하지만 synchronized 키워드를 사용하면 프로그램 내부적으로 성능저하를 일으킬 수 있다.
+  - '동시성'을 보장하기 위한 방법들을 생각해보고, 그런 작업들을 대신 해주고 있다고 생각하면 충분히 납득 가능하다.
+
+- 스레드가 많지 않을 경우에는 사용해도 괜찮다.
+- 오버헤드를 피하기 위해 double checked locking 방식을 사용하기도 한다.
+
+
+
+```java
+// DoubleChecked Locking
+    public static ThreadSafeSingleton getInstance2() {
+        if (instance == null) {
+            synchronized (ThreadSafeSingleton.class) {
+                if (instance == null) {
+                    instance = new ThreadSafeSingleton();
+                }
+            }
+        }
+        return instance;
+    }
+```
+
+
+
+### Using Reflection to destroy Singleton Pattern
+
+- java의 Reflection을 통해 위에서 만든 싱글톤 패턴을 다 파훼시킬 수 있다.
+  - Reflection은 클래스, 인터페이스, 메소드를 찾거나 객체 생성, 변수 변경, 메소드 호출을 지원함
+  - 스프링에서 bean factory가 reflection을 사용해 생성자를 만듦
+
+```java
+public class ReflectionSingletonTest {
+    public static void main(String[] args) {
+        EagerInitializedSingleton instanceOne = EagerInitializedSingleton.getInstance();
+        EagerInitializedSingleton instanceTwo = null;
+
+        try {
+            Constructor[] constructors = EagerInitializedSingleton.class.getDeclaredConstructors();
+
+            for (Constructor constructor : constructors) {
+                // 여기서 싱글톤 패턴을 파괴함
+                constructor.setAccessible(true);
+                instanceTwo = (EagerInitializedSingleton) constructor.newInstance();
+                break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(instanceOne.hashCode());
+        System.out.println(instanceTwo.hashCode());
+    }
+}
+```
+
+```
+result
+
+instanceOne : 460141958
+instanceTwo : 1163157884
+```
+
+
+
+### Enum Singleton
+
+- Reflection으로 싱글톤 패턴이 망가지는 것을 막기 위한 방법
+- 열거형으로 만들면 싱글톤을 보장할 수 있지만 열거형 자체가 유연하지 못한 방식이기 때문에 지연 실행이 어렵다.
+
+```java
+public enum EnumSingleton {
+
+    INSTANCE;
+    
+    public static void doSomething(){
+        //do something
+    }
+}
+```
+
+
+
+## 정리
+
+- 싱글톤은 안티패턴이라 불린다.
+  - 싱글톤의 코드가 복잡해질수록, 다른코드들의 의존성이 함께 커져 결합도가 커진다.
+  - 또한 싱글톤이라는 것 자체가 하나의 인스턴스로 작업이 진행된다는 의미이므로 수정이 잦을 수 있는데 이는 객체지향 원칙 중 OCP를 위반 할 수 있다는 것이다.
+  - 전역 상태로 만드는 것은 객체 지향적이지 않다.
+
+
+
+- 그럼에도 싱글톤은 쓰인다. 위의 문제점들을 커버할 수 있을 만큼의 적당한 규모라면 큰 문제가 없겠지만 언제든지 위 문제들이 발생 할 수 있다는 것을 인지해야 한다.
 
 ref : https://www.journaldev.com/1377/java-singleton-design-pattern-best-practices-examples
