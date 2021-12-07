@@ -32,3 +32,150 @@
 
 ## 상황
 
+- 버튼이 단 하나 있는 리모컨이 있다.
+  - 이 리모컨의 버튼을 한번 클릭하면 티비가 켜지고 다시한번 클릭하면 티비가 꺼진다.
+  - 여기서 버튼은 본인이 무엇을 끄고 키는지 기억할 필요 없다.
+  - '버튼'의 역할은 단순히 버튼이 눌러졌을 때 기능을 execute 해주기만 하면 된다.
+
+
+
+- 먼저 전체 구조를 보자
+
+![UML](https://user-images.githubusercontent.com/72305146/140867419-fc457ea8-8670-47db-99c5-141a15000030.png)
+
+- RemoteController : Invoker(호출자)
+- Command : Command(커맨드)
+- TVOnCommand / TVOffCommand : ConcreteCommand (구체적 커맨드)
+- TV : Receiver(수신자)
+
+
+
+- 전체 구성
+  - Invoker가 Command에 요청을 하면 Receiver가 행동을 한다.
+
+
+
+- 결국 Receiver가 행동을 해야하니 행동 객체 부터 만들어 준다.
+
+
+
+### TV
+
+```java
+public class TV {
+    public void on() {
+        System.out.println("TV를 켰습니다.");
+    }
+
+    public void off() {
+        System.out.println("TV를 껐습니다.");
+    }
+}
+```
+
+
+
+### Command / ConcreteCommand
+
+```java
+public interface Command {
+    void execute();
+}
+```
+
+
+
+```java
+public class TVOnCommand implements Command{ // 수신자
+
+    private final TV tv;
+
+    public TVOnCommand(final TV tv) {
+        this.tv = tv;
+    }
+
+    @Override
+    public void execute() {
+        tv.on();
+    }
+}
+```
+
+
+
+```java
+public class TVOffCommand implements Command{ // 수신자
+
+    private final TV tv;
+
+    public TVOffCommand(final TV tv) {
+        this.tv = tv;
+    }
+
+    @Override
+    public void execute() {
+        tv.off();
+    }
+}
+```
+
+
+
+### Invoker
+
+```java
+public class RemoteController {
+    private Command command;
+
+    public void setCommand(Command command) {
+        this.command = command;
+    }
+
+    public void pressButton() {
+        command.execute();
+    }
+}
+```
+
+
+
+
+
+## 실행
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        RemoteController rc = new RemoteController();
+
+        TVOnCommand tvOnCommand = new TVOnCommand(new TV());
+        rc.setCommand(tvOnCommand);
+        rc.pressButton();
+
+        TVOffCommand tvOffCommand = new TVOffCommand(new TV());
+        rc.setCommand(tvOffCommand);
+        rc.pressButton();
+    }
+}
+```
+
+
+
+- 이렇게 하면 Invoker (RemoteController)는 요청마다 pressButton만 해주면 되고
+
+  기능을 추가하려면 새로운 Command를 만들어 세팅해주면 된다.
+
+
+
+
+
+## 정리
+
+- 커맨드 패턴의 두드러지는 포인트는 '요청' 부분과 '실행' 부분이 나뉜다는 것이다(캡슐화)
+  - 객체 간 결합도를 낮출 수 있음
+  - 수정에 용이해짐
+
+
+
+- 그러나 TV를 켜기 위해 우리는 3개의 클래스를 생성했다.
+  - 앞으로 기능이 무수히 많이 추가된다면 클래스의 수 또한 너무 많아질 것이다.
